@@ -1,0 +1,22 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker built -t rwxproject/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run rwxproject/react-test npm test --  --coverage
+
+after_success:
+  - docker build -t rwxproject/multi-client ./client
+  - docker build -t rwxproject/multi-nginx ./nginx
+  - docker build -t rwxproject/multi-server ./server
+  - docker build -t rwxproject/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push rwxproject/multi-client
+  - docker push rwxproject/multi-nginx
+  - docker push rwxproject/multi-server
+  - docker push rwxproject/multi-worker
